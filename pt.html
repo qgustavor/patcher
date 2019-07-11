@@ -1,0 +1,42 @@
+<!doctype html><html lang=pt><meta charset="utf-8">
+<title>Patcher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Style from http://codepen.io/prasanjit/pen/NxjZMO -->
+<link href="https://fonts.googleapis.com/css?family=PT+Sans" rel="stylesheet">
+<link rel="stylesheet" href="main.css">
+<h2>Patcher</h2>
+<div class="file-drop-area">
+  <span class="fake-btn">Abra arquivos</span>
+  <span class="file-msg">ou arraste eles aqui</span>
+  <input class="file-input" type="file" multiple>
+</div>
+<div class="file-list"></div>
+<template class="file-item-template">
+  <div class="file-item">
+    <div class="name"></div>
+    <div class="status"></div>
+  </div>
+</template>
+<div class="info">
+  Essa ferramenta corrige arquivos para você, direto do navegador.<br>
+  <a href="https://github.com/qgustavor/patcher">Mais informações no GitHub</a>
+  <noscript>Essa ferramenta funciona usando o seu navegador, então ligue o JavaScript.</noscript>
+</div>
+<script type="application/json" class="messages">
+{
+  "identifying": "Identificando o arquivo: ",
+  "checking": "Verificando se há alguma correção disponível...",
+  "noPatch": "Não há nenhuma correção disponível ou o arquivo está corrompido.",
+  "patching": "Corrigindo o arquivo: ",
+  "patchingStream": "Corrigindo o arquivo (não feche essa página): ",
+  "corruptedPatch": "Aconteceu um erro enquanto corrígiamos o arquivo.",
+  "finished": "Arquivo corrigido."
+}
+</script>
+<script src="https://unpkg.com/blake2s-js@1.3.0/blake2s.min.js"></script>
+<script src="https://unpkg.com/tweetnacl@1.0.1/nacl-fast.min.js"></script>
+<script src="https://unpkg.com/tweetnacl-util@0.15.0/nacl-util.min.js"></script>
+<script src="https://unpkg.com/fossil-delta@1.0.2/fossil-delta.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako_inflate.min.js"></script>
+<script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
+<script src="main.js"></script>

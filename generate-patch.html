@@ -1,0 +1,100 @@
+<!doctype html><meta charset="utf-8">
+<title>Generate patch - Patcher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  max-width: 650px;
+  margin: 40px auto;
+  padding: 0 10px;
+  font: 18px/1.5 sans-serif;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+  color: #444
+}
+
+h1, h2, h3 {
+  line-height: 1.2
+}
+label {
+  display: block
+}
+input, button {
+  width: 100%;
+  margin: 0.5em 0;
+}
+</style>
+
+<h1>Patcher</h1>
+<h2>Generate patch</h2>
+
+<form>
+  <label>
+    <legend>Original file</legend>
+  <input type="file" name="original">
+  </label>
+  <label>
+    <legend>Target file</legend>
+    <input type="file" name="target">
+  </label>
+  <button>Generate patch</button><br>
+  <small>After generating the patch upload it to the server you're hosting this tool.</small><br>
+  <span id="status"></span>
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js"></script>
+<script src="https://unpkg.com/blake2s-js@1.3.0/blake2s.min.js"></script>
+<script src="https://unpkg.com/tweetnacl@1.0.1/nacl-fast.min.js"></script>
+<script src="https://unpkg.com/tweetnacl-util@0.15.0/nacl-util.min.js"></script>
+<script src="https://unpkg.com/fossil-delta@1.0.2/fossil-delta.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako_deflate.min.js"></script>
+<script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
+
+<script>
+const form = document.querySelector('form')
+const status = document.querySelector('#status')
+
+form.addEventListener('submit', async evt => {
+  evt.preventDefault()
+  const originalFile = form.original.files[0]
+  const targetFile = form.target.files[0]
+
+  if (!originalFile || !targetFile) return
+
+  const reader = new Response(originalFile).body.getReader()
+  const blake = new BLAKE2s(32, [0x50, 0x41, 0x54, 0x43, 0x48, 0x45, 0x52])
+
+  status.textContent = 'Hashing file'
+  let readBytes = 0
+  while (1) {
+    const data = await reader.read()
+    if (data.done) break
+    blake.update(data.value)
+    readBytes += data.value.length
+    status.textContent = 'Hashing file: ' + Math.round(readBytes * 100 / originalFile.size) + '%'
+  }
+  const digest = blake.digest()
+
+  const serverHash = nacl.util.encodeBase64(digest.slice(0, 6))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+  const patchName = serverHash + '.bin'
+
+  const chunkSize = 1024 * 1024 * 8
+  const patch = [targetFile.name, targetFile.size, chunkSize]
+
+  for (let i = 0; i < originalFile.size; i += chunkSize) {
+    status.textContent = 'Generating deltas: ' + Math.round(i * 100 / originalFile.size) + '%'
+    const oldChunk = new Uint8Array(await new Response(originalFile.slice(i, i + chunkSize)).arrayBuffer())
+    const newChunk = new Uint8Array(await new Response(targetFile.slice(i, i + chunkSize)).arrayBuffer())
+    const delta = new Uint8Array(fossilDelta.create(oldChunk, newChunk))
+    patch.push(delta)
+  }
+
+  const compressedData = pako.deflateRaw(msgpack.serialize(patch))
+
+  const salt = new Uint8Array(24)
+  const ciphertext = nacl.secretbox(compressedData, salt, digest)
+
+  status.textContent = 'Patch generated'
+  saveAs(new Blob([ciphertext]), patchName)
+})
+</script>
