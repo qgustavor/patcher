@@ -41,20 +41,19 @@ Copy the code from the repository, delete the sample patches, generate new patch
 using `generate-patch.html` then host those in somewhere (like GitHub Pages).
 
 If you prefer you can translate `index.html` to your language or edit it as you prefer.
-A Portuguese translation is available as `pt.html`.
-
-If you want to disable encryption or compression you can edit `main.js` and
-`generate-patch.html` removing those steps.
-
-To allow patching large files those are splited in 8 MiB chunks. You can change this variable
+A Portuguese translation is available as `pt.html`. If you want to disable encryption or
+compression you can edit `main.js` and `generate-patch.html` removing those steps. To allow
+patching large files those are splited in 8 MiB chunks. You can change this variable
 in `generate-patch.html`. Larger chunks results in smaller patches, in the other hand
 those can crash browsers out of memory.
 
 ## Libraries used
 
 - [blake2s-js](https://github.com/dchest/blake2s-js)
+- [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
 - [fossil-delta](https://github.com/dchest/fossil-delta-js)
 - [pako](https://github.com/nodeca/pako)
+- [StreamSaver.js](https://github.com/jimmywarting/StreamSaver.js)
 - [tweetnacl](https://github.com/dchest/tweetnacl-js)
 - [tweetnacl-util](https://github.com/dchest/tweetnacl-util-js)
 - [@ygoe/msgpack](https://github.com/ygoe/msgpack.js)
