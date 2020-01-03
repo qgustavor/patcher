@@ -37,7 +37,7 @@ input, button {
     <input type="file" name="target">
   </label>
   <button>Generate patch</button><br>
-  <small>After generating the patch upload it to the server you're hosting this tool.</small><br>
+  <small>After generating the patch upload it to the server where you're hosting this tool.</small><br>
   <span id="status"></span>
 </form>
 
@@ -81,10 +81,50 @@ form.addEventListener('submit', async evt => {
   const chunkSize = 1024 * 1024 * 8
   const patch = [targetFile.name, targetFile.size, chunkSize]
 
-  for (let i = 0; i < originalFile.size; i += chunkSize) {
-    status.textContent = 'Generating deltas: ' + Math.round(i * 100 / originalFile.size) + '%'
-    const oldChunk = new Uint8Array(await new Response(originalFile.slice(i, i + chunkSize)).arrayBuffer())
-    const newChunk = new Uint8Array(await new Response(targetFile.slice(i, i + chunkSize)).arrayBuffer())
+  const chunkAlignPadding = 1024 * 1024
+  const chunkAlignVerifierSize = 128
+
+  const readFile = async (file, start, size) => {
+    return new Uint8Array(await new Response(file.slice(start, start + size)).arrayBuffer())
+  }
+
+  let oldChunkStart = 0
+  let newChunkStart = 0
+
+  while (oldChunkStart < originalFile.size) {
+    status.textContent = `Generating deltas: ${Math.round(oldChunkStart * 100 / originalFile.size)}%`
+
+    let startCheckPos = chunkSize + chunkAlignPadding - chunkAlignVerifierSize
+    let endCheckPos = chunkSize - chunkAlignPadding - chunkAlignVerifierSize
+    let newChunkSize
+
+    const paddedOldChunk = await readFile(originalFile, oldChunkStart, chunkSize + chunkAlignVerifierSize)
+    const paddedNewChunk = await readFile(targetFile, newChunkStart, chunkSize + chunkAlignPadding)
+    const chunkAligmentVector = paddedOldChunk.slice(chunkSize)
+
+    if (chunkAligmentVector.length) {
+      for (let i = startCheckPos; i >= endCheckPos; i--) {
+        let found = true
+        for (let j = 0; j < chunkAlignVerifierSize; j++) {
+          if (paddedNewChunk[i + j] !== chunkAligmentVector[j]) {
+            found = false
+            break
+          }
+        }
+        if (found) {
+          newChunkSize = i
+          break
+        }
+      }
+    }
+
+    if (!newChunkSize) newChunkSize = chunkSize
+    oldChunkStart += chunkSize
+    newChunkStart += newChunkSize
+
+    const oldChunk = paddedOldChunk.slice(0, chunkSize)
+    const newChunk = paddedNewChunk.slice(0, newChunkSize)
+
     const delta = new Uint8Array(fossilDelta.create(oldChunk, newChunk))
     patch.push(delta)
   }
