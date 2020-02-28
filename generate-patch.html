@@ -30,7 +30,7 @@ input, button {
 <form>
   <label>
     <legend>Original file</legend>
-  <input type="file" name="original">
+    <input type="file" name="original">
   </label>
   <label>
     <legend>Target file</legend>
@@ -49,7 +49,9 @@ input, button {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako_deflate.min.js"></script>
 <script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
 
-<script>
+<script type="module">
+import blake3Loader from 'https://unpkg.com/blake3@2.1.1/browser-async.js'
+
 const form = document.querySelector('form')
 const status = document.querySelector('#status')
 
@@ -60,11 +62,17 @@ form.addEventListener('submit', async evt => {
 
   if (!originalFile || !targetFile) return
 
-  const reader = new Response(originalFile).body.getReader()
-  const blake = new BLAKE2s(32, [0x50, 0x41, 0x54, 0x43, 0x48, 0x45, 0x52])
+  const blake3 = await blake3Loader()
+  const blake = blake3.createHash()
+
+  // Prepend the key creating a sort of HMAC
+  const key = new TextEncoder().encode('PATCHER')
+  blake.update(key)
 
   status.textContent = 'Hashing file'
+  const reader = new Response(originalFile).body.getReader()
   let readBytes = 0
+
   while (1) {
     const data = await reader.read()
     if (data.done) break

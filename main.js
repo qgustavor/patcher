@@ -1,4 +1,4 @@
-;(function () {
+import blake3Loader from 'https://unpkg.com/blake3@2.1.1/browser-async.js'
 
 const fileInput = document.querySelector('.file-input')
 const uploadBtn = document.querySelector('.fake-btn')
@@ -26,10 +26,16 @@ async function processFile (file) {
 
   status.textContent = messages.identifying
 
+  const blake3 = await blake3Loader()
+  const blake = blake3.createHash()
+
+  // Prepend the key creating a sort of HMAC
+  const key = new TextEncoder().encode('PATCHER')
+  blake.update(key)
+
   const reader = new Response(file).body.getReader()
-  const blake = new BLAKE2s(32, [0x50, 0x41, 0x54, 0x43, 0x48, 0x45, 0x52])
-  
   let readBytes = 0
+
   while (1) {
     const data = await reader.read()
     if (data.done) break
@@ -90,7 +96,7 @@ async function processFile (file) {
     } else {
       chunks.push(patchedData)
     }
-    
+
     const percentage = i * 100 / deltas.length
     status.textContent = patchingMessage + percentage.toFixed(1) + '%'
   }
@@ -120,9 +126,7 @@ if (supportStreams) {
 
   window.onbeforeunload = evt => {
     if (pendingStreams.length) {
-      evt.returnValue = `Are you sure you want to leave?`
+      evt.returnValue = messages.pageleave
     }
   }
 }
-
-}())
