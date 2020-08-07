@@ -40,15 +40,15 @@ for the sake of simplicity.
 
 ## How to use
 
-Copy the code from the repository, delete the sample patches, generate new patches
-using `generate-patch.html` then host those in somewhere (like GitHub Pages).
+Copy the code from the repository (you can clone this repository too), delete the sample patches, generate new patches
+using `generate-patch.html` then host those somewhere (like GitHub Pages).
 
 If you prefer you can translate `index.html` to your language or edit it as you prefer.
 A Portuguese translation is available as `pt.html`. If you want to disable encryption or
 compression you can edit `main.js` and `generate-patch.html` removing those steps. To allow
 patching large files those are chunked in 8 MiB parts. You can change this variable
-in `generate-patch.html`. Larger chunks results in smaller patches, in the other hand
-those can crash browsers out of memory.
+in `generate-patch.html`. Using larger chunks will result in smaller patches but those
+can crash browsers out of memory.
 
 ## Libraries used
 
