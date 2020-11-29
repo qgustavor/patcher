@@ -50,6 +50,12 @@ patching large files those are chunked in 8 MiB parts. You can change this varia
 in `generate-patch.html`. Using larger chunks will result in smaller patches but those
 can crash browsers out of memory.
 
+If you already have some kind of backend you can replace
+[this line](https://github.com/qgustavor/patcher/blob/8050733f690031b6079d9fbbe7ab551b4d6d5ddf/generate-patch.html#L146)
+with a `fetch()` to your backend, something like
+`await fetch('/save-patch.php?name=' + window.encodeURIComponent(patchName), { method: 'POST', body: ciphertext })`.
+Remember to use some kind of authentication.
+
 ## Libraries used
 
 - [BLAKE3](https://github.com/connor4312/blake3/)
