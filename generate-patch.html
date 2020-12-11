@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+/* This is just some basic styling. */
 body {
   max-width: 650px;
   margin: 40px auto;
@@ -50,7 +51,7 @@ input, button {
 <script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
 
 <script type="module">
-import blake3Loader from 'https://unpkg.com/blake3@2.1.1/browser-async.js'
+import loadBlake3 from 'https://unpkg.com/blake3@2.1.1/browser-async.js'
 
 const form = document.querySelector('form')
 const status = document.querySelector('#status')
@@ -62,7 +63,7 @@ form.addEventListener('submit', async evt => {
 
   if (!originalFile || !targetFile) return
 
-  const blake3 = await blake3Loader()
+  const blake3 = await loadBlake3()
   const blake = blake3.createHash()
 
   // Prepend the key creating a sort of HMAC
@@ -139,10 +140,15 @@ form.addEventListener('submit', async evt => {
 
   const compressedData = pako.deflateRaw(msgpack.serialize(patch))
 
+  // Comment the below lines two and replace ciphertext with 
+  // compressedData in the saveAs call to disable encryption
+  // Remember to also disable it in main.js
   const salt = new Uint8Array(24)
   const ciphertext = nacl.secretbox(compressedData, salt, digest)
 
   status.textContent = 'Patch generated'
+
+  // You can replace the line below with a fetch() to some API
   saveAs(new Blob([ciphertext]), patchName)
 })
 </script>

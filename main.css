@@ -34,7 +34,7 @@ h2 {
   border: 1px dashed #7c7db3;
   border-radius: 3px;
   position: relative;
-  width: 500px;
+  width: 520px;
   max-width: 100%;
   margin: 0 auto;
   padding: 26px 20px 30px;
@@ -52,6 +52,7 @@ h2 {
   margin-right: 8px;
   font-size: 12px;
   text-transform: uppercase;
+  color: inherit
 }
 
 .file-msg {
@@ -114,4 +115,10 @@ h2 {
 
 .file-item .name {
   font-weight: bold;
+}
+
+.open-directory {
+  position: relative;
+  float: right;
+  z-index: 2;
 }

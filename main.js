@@ -18,7 +18,25 @@ fileInput.addEventListener('change', () => {
   }
 })
 
-async function processFile (file) {
+const directoryBtn = document.querySelector('.open-directory')
+if (window.showDirectoryPicker) {
+  directoryBtn.addEventListener('click', async () => {
+    const dirHandle = await window.showDirectoryPicker().catch(() => null)
+    if (!dirHandle) return
+    const entries = dirHandle.getEntries ? dirHandle.getEntries() : dirHandle.values()
+    for await (const fileHandle of entries) {
+      const file = fileHandle.getFileHandle
+        ? await fileHandle.getFileHandle()
+        : await fileHandle.getFile()
+      processFile(file, dirHandle)
+    }
+  })
+} else {
+  document.querySelector('.open-dir-or').remove()
+  directoryBtn.remove()
+}
+
+async function processFile (file, dirHandle) {
   const el = document.importNode(fileItem.content, true)
   const status = el.querySelector('.status')
   el.querySelector('.name').textContent = file.name
@@ -74,7 +92,12 @@ async function processFile (file) {
   const [newFilename, newSize, chunkSize, ...deltas] = payload
 
   let writer, fileStream
-  if (supportStreams) {
+  if (dirHandle) {
+    const newFileHandle = dirHandle.getFileHandle
+     ? await dirHandle.getFileHandle(newFilename, { create: true })
+     : await dirHandle.getFile(newFilename, { create: true })
+    writer = await newFileHandle.createWritable()
+  } else if (supportStreams) {
     fileStream = streamSaver.createWriteStream(newFilename, {
       size: newSize
     })
@@ -101,9 +124,11 @@ async function processFile (file) {
     status.textContent = patchingMessage + percentage.toFixed(1) + '%'
   }
 
-  if (supportStreams) {
+  if (dirHandle || supportStreams) {
     writer.close()
-    pendingStreams.splice(pendingStreams.indexOf(fileStream), 1)
+    if (fileStream) {
+      pendingStreams.splice(pendingStreams.indexOf(fileStream), 1)
+    }
   } else {
     saveAs(new Blob(chunks), newFilename)
   }

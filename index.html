@@ -6,16 +6,17 @@
 <link rel="stylesheet" href="main.css">
 <h2>Patcher</h2>
 <div class="file-drop-area">
-  <span class="fake-btn">Choose files</span>
-  <span class="file-msg">or drag and drop files here</span>
+  <button class="fake-btn">Choose files</button>
+  <span class="file-msg">or drag and drop files here<span class="open-dir-or"> or</span></span>
   <input class="file-input" type="file" multiple>
+  <button class="fake-btn open-directory">Open directory</button>
 </div>
 <div class="file-list"></div>
 <template class="file-item-template">
   <div class="file-item">
     <div class="name"></div>
     <div class="status"></div>
-  </div>
+  </div>  
 </template>
 <div class="info">
   This tool patches files for you, right in the browser.<br>
