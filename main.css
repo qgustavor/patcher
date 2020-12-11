@@ -53,6 +53,7 @@ h2 {
   font-size: 12px;
   text-transform: uppercase;
   color: inherit
+  font-family: inherit
 }
 
 .file-msg {
