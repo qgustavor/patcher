@@ -118,6 +118,12 @@ h2 {
   font-weight: bold;
 }
 
+.status-link {
+	cursor: pointer;
+	text-decoration: underline;
+	color: #ddd92d;
+}
+
 .open-directory {
   position: relative;
   float: right;

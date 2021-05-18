@@ -23,11 +23,8 @@ if (window.showDirectoryPicker) {
   directoryBtn.addEventListener('click', async () => {
     const dirHandle = await window.showDirectoryPicker().catch(() => null)
     if (!dirHandle) return
-    const entries = dirHandle.getEntries ? dirHandle.getEntries() : dirHandle.values()
-    for await (const fileHandle of entries) {
-      const file = fileHandle.getFileHandle
-        ? await fileHandle.getFileHandle()
-        : await fileHandle.getFile()
+    for await (const fileHandle of dirHandle.values()) {
+      const file = await fileHandle.getFile()
       processFile(file, dirHandle)
     }
   })
@@ -93,9 +90,15 @@ async function processFile (file, dirHandle) {
 
   let writer, fileStream
   if (dirHandle) {
-    const newFileHandle = dirHandle.getFileHandle
-     ? await dirHandle.getFileHandle(newFilename, { create: true })
-     : await dirHandle.getFile(newFilename, { create: true })
+    await handlePermission(dirHandle, status)
+    let newFileHandle
+    try {
+      newFileHandle = await dirHandle.getFileHandle(newFilename, { create: true })
+    } catch (e) {
+      status.textContent = messages.couldNotWrite
+      return
+    }
+    await handlePermission(newFileHandle, status)
     writer = await newFileHandle.createWritable()
   } else if (supportStreams) {
     fileStream = streamSaver.createWriteStream(newFilename, {
@@ -133,7 +136,36 @@ async function processFile (file, dirHandle) {
     saveAs(new Blob(chunks), newFilename)
   }
 
-  status.textContent = messages.finished
+  status.textContent = dirHandle ? messages.clickToDelete : messages.finished
+  if (dirHandle) {
+    status.classList.add('status-link')
+    status.addEventListener('click', function clickHandler () {
+      status.classList.remove('status-link')
+      status.removeEventListener('click', clickHandler)
+      dirHandle.removeEntry(file.name).then(() => {
+        status.textContent = messages.fileDeleted
+      }, () => {
+        status.textContent = messages.fileDeleteError
+      })
+    })
+  }
+}
+
+async function handlePermission (handle, status) {
+  const options = { mode: 'readwrite' }
+  let tries = 0
+  let permission = await handle.queryPermission(options)
+  while (permission !== 'granted') {
+    status.textContent = messages.requiresPermission
+    status.classList.add('status-link')
+    permission = await new Promise(resolve => {
+      status.classList.remove('status-link')
+      status.addEventListener('click', function clickHandler () {
+        status.removeEventListener('click', clickHandler)
+        resolve(handle.requestPermission(options))
+      })
+    })
+  }
 }
 
 const supportStreams = !!window.WritableStream
