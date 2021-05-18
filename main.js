@@ -136,8 +136,14 @@ async function processFile (file, dirHandle) {
     saveAs(new Blob(chunks), newFilename)
   }
 
-  status.textContent = dirHandle ? messages.clickToDelete : messages.finished
-  if (dirHandle) {
+  const wasOverwritten = file.name === newFilename
+  status.textContent = !dirHandle
+    ? messages.finished
+    : wasOverwritten
+      ? messages.overwritten
+      : messages.clickToDelete
+
+  if (dirHandle && !wasOverwritten) {
     status.classList.add('status-link')
     status.addEventListener('click', function clickHandler () {
       status.classList.remove('status-link')
