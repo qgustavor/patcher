@@ -159,8 +159,8 @@ async function handlePermission (handle, status) {
     status.textContent = messages.requiresPermission
     status.classList.add('status-link')
     permission = await new Promise(resolve => {
-      status.classList.remove('status-link')
       status.addEventListener('click', function clickHandler () {
+        status.classList.remove('status-link')
         status.removeEventListener('click', clickHandler)
         resolve(handle.requestPermission(options))
       })
