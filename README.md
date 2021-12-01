@@ -26,7 +26,7 @@ Test it with [`jquery-3.4.0.min.js`](https://code.jquery.com/jquery-3.4.0.min.js
 
 ## How to use
 
-Copy the code from the repository (you can clone this repository too), delete the sample patches, generate new patches using `generate-patch.html` then host those somewhere (like GitHub Pages).
+Copy the code from the repository, delete the sample patches, generate new patches using `generate-patch.html` then host those somewhere. One easy way to do this is forking this repository, editing the fork in the web interface and enabling GitHub Pages in the settings.
 
 It's good to change styling of both `index.html` and `generate-patch.html` pages adding some logo or changing colors as you prefer.
 
